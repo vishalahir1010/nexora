@@ -11,6 +11,7 @@ router.get("/admin/:id", protect, admin, productController.getAdminProductById);
 router.get("/:slug", productController.getProductBySlug);
 
 router.post("/", protect, admin, productController.createProduct);
+router.post("/bulk-import", protect, admin, productController.bulkImportProducts);
 router.put("/:id", protect, admin, productController.updateProduct);
 router.delete("/:id", protect, admin, productController.deleteProduct);
 

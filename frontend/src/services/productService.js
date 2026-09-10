@@ -1,5 +1,6 @@
 import api from "./api.js";
 
+
 export const productService = {
   getProducts: (params) => api.get("/products", { params }),
   getProductBySlug: (slug) => api.get(`/products/${slug}`),
@@ -9,6 +10,7 @@ export const productService = {
   deleteProduct: (id) => api.delete(`/products/${id}`),
   getAdminProduct: (id) => api.get(`/products/admin/${id}`),
   getLowStock: () => api.get("/products/admin/low-stock"),
+  bulkImportProducts: (rows) => api.post("/products/bulk-import", { rows }),
 };
 
 export const categoryService = {

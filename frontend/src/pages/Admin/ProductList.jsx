@@ -80,6 +80,9 @@ const ProductList = () => {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="section-title">Products</h1>
+        <Link to="/admin/products/import" className="btn-secondary">
+        Bulk Import
+      </Link>
         <Link to="/admin/products/new" className="btn-primary">
           <Plus size={16} /> Add Product
         </Link>

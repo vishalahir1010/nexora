@@ -37,6 +37,8 @@ import OrderManagement from "./pages/Admin/OrderManagement.jsx";
 import UserManagement from "./pages/Admin/UserManagement.jsx";
 import CouponManagement from "./pages/Admin/CouponManagement.jsx";
 import Analytics from "./pages/Admin/Analytics.jsx";
+import BulkImport from "./pages/Admin/BulkImport.jsx";
+
 
 import { fetchMe } from "./redux/slices/authSlice.js";
 import { fetchCart } from "./redux/slices/cartSlice.js";
@@ -95,6 +97,7 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="products" element={<ProductList />} />
           <Route path="products/new" element={<ProductForm />} />
+          <Route path="products/import" element={<BulkImport />} />
           <Route path="products/:id" element={<ProductForm />} />
           <Route path="categories" element={<CategoryManagement />} />
           <Route path="orders" element={<OrderManagement />} />

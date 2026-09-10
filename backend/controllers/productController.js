@@ -3,6 +3,7 @@ import Product from "../models/Product.js";
 import Category from "../models/Category.js";
 import { success } from "../utils/apiResponse.js";
 import ApiError from "../utils/ApiError.js";
+import Brand from "../models/Brand.js";
 
 // GET /api/products  - public, supports filters/sort/pagination/search
 export const getProducts = asyncHandler(async (req, res) => {
@@ -168,4 +169,83 @@ export const getLowStockProducts = asyncHandler(async (req, res) => {
     status: "active",
   }).select("name sku stock lowStockThreshold images");
   success(res, 200, "Low stock products fetched", { products });
+});
+export const bulkImportProducts = asyncHandler(async (req, res) => {
+  const { rows } = req.body;
+  if (!Array.isArray(rows) || rows.length === 0) {
+    throw new ApiError(400, "No rows provided to import");
+  }
+
+  const categories = await Category.find();
+  const brands = await Brand.find();
+  const categoryMap = new Map(categories.map((c) => [c.name.toLowerCase(), c._id]));
+  const brandMap = new Map(brands.map((b) => [b.name.toLowerCase(), b._id]));
+
+  const results = { created: 0, failed: [] };
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const rowNum = i + 2;
+
+    try {
+      const name = row.name?.trim();
+      const sku = row.sku?.trim();
+      const brandName = row.brand?.trim();
+      const categoryName = row.category?.trim();
+      const price = Number(row.price);
+      const description = row.description?.trim();
+
+      if (!name || !sku || !brandName || !categoryName || !description || !price) {
+        results.failed.push({ row: rowNum, name: name || "(no name)", reason: "Missing a required field (name, sku, brand, category, description, price)" });
+        continue;
+      }
+
+      const brandId = brandMap.get(brandName.toLowerCase());
+      if (!brandId) {
+        results.failed.push({ row: rowNum, name, reason: `Brand "${brandName}" doesn't exist — create it first` });
+        continue;
+      }
+      const categoryId = categoryMap.get(categoryName.toLowerCase());
+      if (!categoryId) {
+        results.failed.push({ row: rowNum, name, reason: `Category "${categoryName}" doesn't exist — create it first` });
+        continue;
+      }
+
+      const images = (row.images || "")
+        .split(";")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .map((url) => ({ url }));
+
+      const tags = (row.tags || "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      await Product.create({
+        name,
+        sku,
+        brand: brandId,
+        category: categoryId,
+        description,
+        shortDescription: row.shortDescription?.trim() || "",
+        price,
+        discountPercent: Number(row.discountPercent) || 0,
+        stock: Number(row.stock) || 0,
+        images,
+        tags,
+        isFeatured: String(row.isFeatured).toLowerCase() === "true",
+        isBestseller: String(row.isBestseller).toLowerCase() === "true",
+        isNewArrival: String(row.isNewArrival).toLowerCase() === "true",
+        status: row.status?.trim() || "active",
+      });
+
+      results.created++;
+    } catch (err) {
+      const reason = err.code === 11000 ? "A product with this SKU already exists" : err.message;
+      results.failed.push({ row: rowNum, name: row.name || "(no name)", reason });
+    }
+  }
+
+  success(res, 200, `Import complete: ${results.created} created, ${results.failed.length} failed`, results);
 });
