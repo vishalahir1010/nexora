@@ -1,24 +1,50 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { Plus, Pencil, Trash2, Archive, CheckCircle2 } from "lucide-react";
-import { productService } from "../../services/productService.js";
+import { Plus, Pencil, Trash2, Upload, CheckCircle2, Archive, ChevronLeft, ChevronRight } from "lucide-react";
+import { productService, categoryService } from "../../services/productService.js";
 import { getErrorMessage } from "../../services/api.js";
 import { formatPrice } from "../../utils/format.js";
 import Loader from "../../components/common/Loader.jsx";
 
+const PAGE_SIZE = 20;
+
 const ProductList = () => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ total: 0, page: 1, pages: 1 });
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(new Set());
   const [bulkWorking, setBulkWorking] = useState(false);
 
-  const load = () => productService.getProducts({ limit: 60 }).then((res) => {
-    setProducts(res.data.data.products);
-    setLoading(false);
-  });
+  useEffect(() => {
+    categoryService.getCategories().then((res) => setCategories(res.data.data.categories));
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  const load = () => {
+    setLoading(true);
+    productService
+      .getProducts({ category: categoryFilter || undefined, page, limit: PAGE_SIZE })
+      .then((res) => {
+        setProducts(res.data.data.products);
+        setPagination(res.data.pagination || { total: res.data.data.products.length, page: 1, pages: 1 });
+        setLoading(false);
+        setSelected(new Set());
+      })
+      .catch((err) => {
+        toast.error(getErrorMessage(err));
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => { load(); }, [categoryFilter, page]);
+
+  const handleCategoryChange = (slug) => {
+    setCategoryFilter(slug);
+    setPage(1);
+  };
 
   const toggleSelect = (id) => {
     setSelected((prev) => {
@@ -37,7 +63,7 @@ const ProductList = () => {
     try {
       await productService.deleteProduct(id);
       toast.success("Product deleted");
-      setProducts((p) => p.filter((x) => x._id !== id));
+      load();
     } catch (err) {
       toast.error(getErrorMessage(err));
     }
@@ -50,8 +76,7 @@ const ProductList = () => {
     try {
       await Promise.all([...selected].map((id) => productService.deleteProduct(id)));
       toast.success(`${selected.size} product(s) deleted`);
-      setProducts((p) => p.filter((x) => !selected.has(x._id)));
-      setSelected(new Set());
+      load();
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -65,8 +90,7 @@ const ProductList = () => {
     try {
       await Promise.all([...selected].map((id) => productService.updateProduct(id, { status })));
       toast.success(`${selected.size} product(s) marked ${status}`);
-      setProducts((p) => p.map((x) => (selected.has(x._id) ? { ...x, status } : x)));
-      setSelected(new Set());
+      load();
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -74,18 +98,40 @@ const ProductList = () => {
     }
   };
 
-  if (loading) return <Loader full />;
-
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h1 className="section-title">Products</h1>
-        <Link to="/admin/products/import" className="btn-secondary">
-        Bulk Import
-      </Link>
-        <Link to="/admin/products/new" className="btn-primary">
-          <Plus size={16} /> Add Product
-        </Link>
+        <div className="flex gap-3">
+          <Link to="/admin/products/import" className="btn-secondary">
+            <Upload size={16} /> Bulk Import
+          </Link>
+          <Link to="/admin/products/new" className="btn-primary">
+            <Plus size={16} /> Add Product
+          </Link>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 mb-5">
+        <button
+          onClick={() => handleCategoryChange("")}
+          className={`text-xs font-medium px-3 py-1.5 rounded-full border ${
+            categoryFilter === "" ? "bg-ink text-white border-ink" : "border-gray-300 text-ink/70"
+          }`}
+        >
+          All Categories
+        </button>
+        {categories.map((c) => (
+          <button
+            key={c._id}
+            onClick={() => handleCategoryChange(c.slug)}
+            className={`text-xs font-medium px-3 py-1.5 rounded-full border ${
+              categoryFilter === c.slug ? "bg-ink text-white border-ink" : "border-gray-300 text-ink/70"
+            }`}
+          >
+            {c.name}
+          </button>
+        ))}
       </div>
 
       {selected.size > 0 && (
@@ -104,50 +150,95 @@ const ProductList = () => {
         </div>
       )}
 
-      <div className="card overflow-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-muted border-b border-gray-100">
-              <th className="p-4 w-10">
-                <input type="checkbox" checked={selected.size === products.length && products.length > 0} onChange={toggleSelectAll} />
-              </th>
-              <th className="p-4 font-medium">Product</th>
-              <th className="p-4 font-medium">SKU</th>
-              <th className="p-4 font-medium">Price</th>
-              <th className="p-4 font-medium">Stock</th>
-              <th className="p-4 font-medium">Status</th>
-              <th className="p-4 font-medium"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((p) => (
-              <tr key={p._id} className={`border-b border-gray-50 ${selected.has(p._id) ? "bg-gray-50" : ""}`}>
-                <td className="p-4">
-                  <input type="checkbox" checked={selected.has(p._id)} onChange={() => toggleSelect(p._id)} />
-                </td>
-                <td className="p-4 flex items-center gap-3">
-                  <img src={p.images?.[0]?.url} alt="" className="h-10 w-10 rounded-lg object-cover" />
-                  <span className="line-clamp-1">{p.name}</span>
-                </td>
-                <td className="p-4 text-muted">{p.sku}</td>
-                <td className="p-4">{formatPrice(p.price)}</td>
-                <td className="p-4">{p.totalStock ?? p.stock}</td>
-                <td className="p-4">
-                  <span className={`text-xs px-2 py-1 rounded-full ${p.status === "active" ? "bg-green-50 text-green-700" : "bg-gray-100"}`}>
-                    {p.status}
-                  </span>
-                </td>
-                <td className="p-4">
-                  <div className="flex items-center gap-3">
-                    <Link to={`/admin/products/${p._id}`} className="text-muted hover:text-ink"><Pencil size={15} /></Link>
-                    <button onClick={() => handleDelete(p._id)} className="text-muted hover:text-accent"><Trash2 size={15} /></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {loading ? (
+        <Loader full />
+      ) : (
+        <>
+          <p className="text-xs text-muted mb-3">{pagination.total} product(s) found</p>
+
+          <div className="card overflow-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-muted border-b border-gray-100">
+                  <th className="p-4 w-10">
+                    <input type="checkbox" checked={selected.size === products.length && products.length > 0} onChange={toggleSelectAll} />
+                  </th>
+                  <th className="p-4 font-medium">Product</th>
+                  <th className="p-4 font-medium">SKU</th>
+                  <th className="p-4 font-medium">Price</th>
+                  <th className="p-4 font-medium">Stock</th>
+                  <th className="p-4 font-medium">Status</th>
+                  <th className="p-4 font-medium"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.map((p) => (
+                  <tr key={p._id} className={`border-b border-gray-50 ${selected.has(p._id) ? "bg-gray-50" : ""}`}>
+                    <td className="p-4">
+                      <input type="checkbox" checked={selected.has(p._id)} onChange={() => toggleSelect(p._id)} />
+                    </td>
+                    <td className="p-4 flex items-center gap-3">
+                      <img src={p.images?.[0]?.url} alt="" className="h-10 w-10 rounded-lg object-cover" />
+                      <span className="line-clamp-1">{p.name}</span>
+                    </td>
+                    <td className="p-4 text-muted">{p.sku}</td>
+                    <td className="p-4">{formatPrice(p.price)}</td>
+                    <td className="p-4">{p.totalStock ?? p.stock}</td>
+                    <td className="p-4">
+                      <span className={`text-xs px-2 py-1 rounded-full ${p.status === "active" ? "bg-green-50 text-green-700" : "bg-gray-100"}`}>
+                        {p.status}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <Link to={`/admin/products/${p._id}`} className="text-muted hover:text-ink"><Pencil size={15} /></Link>
+                        <button onClick={() => handleDelete(p._id)} className="text-muted hover:text-accent"><Trash2 size={15} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {products.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-muted text-sm">No products found for this category.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {pagination.pages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-6">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="h-9 w-9 rounded-full border border-gray-300 flex items-center justify-center disabled:opacity-40"
+                aria-label="Previous page"
+              >
+                <ChevronLeft size={15} />
+              </button>
+              {Array.from({ length: pagination.pages }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setPage(i + 1)}
+                  className={`h-9 w-9 rounded-full text-sm font-medium ${
+                    page === i + 1 ? "bg-ink text-white" : "border border-gray-300"
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
+                disabled={page === pagination.pages}
+                className="h-9 w-9 rounded-full border border-gray-300 flex items-center justify-center disabled:opacity-40"
+                aria-label="Next page"
+              >
+                <ChevronRight size={15} />
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };

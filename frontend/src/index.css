@@ -2,53 +2,303 @@
 @tailwind components;
 @tailwind utilities;
 
-html { scroll-behavior: smooth; }
-body { @apply bg-white text-ink antialiased overflow-x-hidden; }
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-white text-ink antialiased overflow-x-hidden;
+  
+  /* Prevent unwanted horizontal movement */
+  width: 100%;
+  max-width: 100%;
+}
+
+
+/* =========================================================
+   MOBILE MENU / DRAWER SAFETY
+========================================================= */
+
+/*
+  When Navbar mobile drawer is open, JavaScript adds
+  overflow-hidden to body.
+
+  The actual drawer itself handles vertical scrolling.
+*/
+
+body.menu-open {
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   ANIMATIONS
+========================================================= */
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(2px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
+
 @keyframes badgePop {
-  0% { transform: scale(0.6); }
-  50% { transform: scale(1.25); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0.6);
+  }
+
+  50% {
+    transform: scale(1.25);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
+
 
 .badge-pop {
   animation: badgePop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { @apply bg-gray-300 rounded-full; }
-::-webkit-scrollbar-track { @apply bg-transparent; }
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+
+/* =========================================================
+   COMPONENTS
+========================================================= */
 
 @layer components {
+
+  /* -------------------------------------------------------
+     PRIMARY BUTTON
+  ------------------------------------------------------- */
+
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 bg-ink text-white px-6 py-3 rounded-full font-medium text-sm tracking-wide transition-all duration-200 hover:bg-black hover:shadow-cardHover active:scale-95 disabled:opacity-50 disabled:pointer-events-none min-h-[44px];
+    @apply inline-flex
+      items-center
+      justify-center
+      gap-2
+      bg-ink
+      text-white
+      px-6
+      py-3
+      rounded-full
+      font-medium
+      text-sm
+      tracking-wide
+      transition-all
+      duration-200
+      hover:bg-black
+      hover:shadow-cardHover
+      active:scale-95
+      disabled:opacity-50
+      disabled:pointer-events-none
+      min-h-[44px];
   }
+
+
+  /* -------------------------------------------------------
+     SECONDARY BUTTON
+  ------------------------------------------------------- */
+
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 bg-white text-ink border border-gray-300 px-6 py-3 rounded-full font-medium text-sm tracking-wide transition-all duration-200 hover:border-ink active:scale-95 disabled:opacity-50 disabled:pointer-events-none min-h-[44px];
+    @apply inline-flex
+      items-center
+      justify-center
+      gap-2
+      bg-white
+      text-ink
+      border
+      border-gray-300
+      px-6
+      py-3
+      rounded-full
+      font-medium
+      text-sm
+      tracking-wide
+      transition-all
+      duration-200
+      hover:border-ink
+      active:scale-95
+      disabled:opacity-50
+      disabled:pointer-events-none
+      min-h-[44px];
   }
+
+
+  /* -------------------------------------------------------
+     CARD
+  ------------------------------------------------------- */
+
   .card {
-    @apply bg-white rounded-2xl shadow-card transition-shadow duration-300 hover:shadow-cardHover;
+    @apply bg-white
+      rounded-2xl
+      shadow-card
+      transition-shadow
+      duration-300
+      hover:shadow-cardHover;
   }
+
+
+  /* -------------------------------------------------------
+     INPUT
+  ------------------------------------------------------- */
+
   .input-field {
-    /* text-base (16px) is deliberate, not a default — iOS Safari auto-zooms the
-       page on focus for any input with font-size under 16px, which is a jarring
-       "why did the screen jump" bug. Do not shrink this below 16px. */
-    @apply w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-all min-h-[44px];
+
+    /*
+      16px minimum is deliberate.
+
+      iOS Safari can zoom the page when an input
+      has a font-size below 16px.
+    */
+
+    @apply w-full
+      px-4
+      py-3
+      rounded-xl
+      border
+      border-gray-300
+      bg-white
+      text-base
+      sm:text-sm
+      focus:outline-none
+      focus:ring-2
+      focus:ring-ink/20
+      focus:border-ink
+      transition-all
+      min-h-[44px];
   }
+
+
+  /* -------------------------------------------------------
+     SECTION TITLE
+  ------------------------------------------------------- */
+
   .section-title {
-    @apply font-display text-[1.5rem] leading-tight md:text-3xl font-semibold tracking-tight;
+    @apply font-display
+      text-[1.5rem]
+      leading-tight
+      md:text-3xl
+      font-semibold
+      tracking-tight;
   }
+
+
+  /* -------------------------------------------------------
+     SKELETON
+  ------------------------------------------------------- */
+
   .skeleton {
-    @apply animate-pulse bg-gray-200 rounded-xl;
+    @apply animate-pulse
+      bg-gray-200
+      rounded-xl;
   }
-  /* Minimum comfortable tap target (Apple/Google guidance: 44x44px) for small
-     icon-only buttons that would otherwise render much smaller than that. */
+
+
+  /* -------------------------------------------------------
+     TOUCH TARGET
+  ------------------------------------------------------- */
+
   .tap-target {
-    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+    @apply min-h-[44px]
+      min-w-[44px]
+      flex
+      items-center
+      justify-center;
   }
+}
+
+
+/* =========================================================
+   DESKTOP CATEGORY NAV
+========================================================= */
+
+/*
+  Hidden by default on mobile/tablet.
+*/
+
+.desktop-category-nav {
+  display: none;
+}
+
+
+/*
+  Show desktop category navigation from 1024px.
+*/
+
+@media (min-width: 1024px) {
+
+  .desktop-category-nav {
+    display: flex;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE VIEWPORT SAFETY
+========================================================= */
+
+@media (max-width: 1023px) {
+
+  /*
+    Prevent accidental horizontal overflow
+    from wide elements.
+  */
+
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
 }

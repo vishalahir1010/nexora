@@ -38,56 +38,82 @@ const OrderManagement = () => {
     <div>
       <h1 className="section-title mb-6">Order Management</h1>
 
-      <div className="flex gap-3 mb-5">
+      <div className="flex flex-col sm:flex-row gap-3 mb-5">
         <form onSubmit={(e) => { e.preventDefault(); load(); }} className="flex-1">
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by order number..."
-            className="input-field max-w-xs"
+            className="input-field sm:max-w-xs"
           />
         </form>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="input-field max-w-xs">
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="input-field sm:max-w-xs">
           <option value="">All Statuses</option>
           {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
         </select>
       </div>
 
       {loading ? <Loader /> : (
-        <div className="card overflow-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-muted border-b border-gray-100">
-                <th className="p-4 font-medium">Order</th>
-                <th className="p-4 font-medium">Customer</th>
-                <th className="p-4 font-medium">Date</th>
-                <th className="p-4 font-medium">Total</th>
-                <th className="p-4 font-medium">Payment</th>
-                <th className="p-4 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((o) => (
-                <tr key={o._id} className="border-b border-gray-50">
-                  <td className="p-4">{o.orderNumber}</td>
-                  <td className="p-4">{o.user?.name}<br /><span className="text-xs text-muted">{o.user?.email}</span></td>
-                  <td className="p-4 text-muted">{formatDate(o.createdAt)}</td>
-                  <td className="p-4">{formatPrice(o.totalPrice)}</td>
-                  <td className="p-4 capitalize">{o.paymentStatus}</td>
-                  <td className="p-4">
-                    <select
-                      value={o.orderStatus}
-                      onChange={(e) => handleStatusChange(o._id, e.target.value)}
-                      className="input-field !py-1.5 !px-2 text-xs"
-                    >
-                      {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
-                    </select>
-                  </td>
+        <>
+          <div className="card overflow-auto hidden md:block">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-muted border-b border-gray-100">
+                  <th className="p-4 font-medium">Order</th>
+                  <th className="p-4 font-medium">Customer</th>
+                  <th className="p-4 font-medium">Date</th>
+                  <th className="p-4 font-medium">Total</th>
+                  <th className="p-4 font-medium">Payment</th>
+                  <th className="p-4 font-medium">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {orders.map((o) => (
+                  <tr key={o._id} className="border-b border-gray-50">
+                    <td className="p-4">{o.orderNumber}</td>
+                    <td className="p-4">{o.user?.name}<br /><span className="text-xs text-muted">{o.user?.email}</span></td>
+                    <td className="p-4 text-muted">{formatDate(o.createdAt)}</td>
+                    <td className="p-4">{formatPrice(o.totalPrice)}</td>
+                    <td className="p-4 capitalize">{o.paymentStatus}</td>
+                    <td className="p-4">
+                      <select
+                        value={o.orderStatus}
+                        onChange={(e) => handleStatusChange(o._id, e.target.value)}
+                        className="input-field !py-1.5 !px-2 text-xs"
+                      >
+                        {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="space-y-3 md:hidden">
+            {orders.map((o) => (
+              <div key={o._id} className="card p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-sm">{o.orderNumber}</span>
+                  <span className="font-semibold text-sm">{formatPrice(o.totalPrice)}</span>
+                </div>
+                <p className="text-xs text-muted mb-1">{o.user?.name} · {o.user?.email}</p>
+                <p className="text-xs text-muted mb-3">{formatDate(o.createdAt)} · Payment: <span className="capitalize">{o.paymentStatus}</span></p>
+                <select
+                  value={o.orderStatus}
+                  onChange={(e) => handleStatusChange(o._id, e.target.value)}
+                  className="input-field !py-2 text-sm w-full"
+                >
+                  {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
+                </select>
+              </div>
+            ))}
+          </div>
+
+          {orders.length === 0 && (
+            <p className="text-sm text-muted text-center py-10">No orders found.</p>
+          )}
+        </>
       )}
     </div>
   );
