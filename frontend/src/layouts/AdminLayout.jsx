@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
-  LayoutDashboard, Package, Tags, ShoppingCart, Users, TicketPercent, BarChart3, LogOut, Menu, X,
+  LayoutDashboard, Package, Tags, Award, ShoppingCart, Users, TicketPercent, BarChart3, LogOut, Menu, X,
 } from "lucide-react";
 import { logout } from "../redux/slices/authSlice.js";
 
@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, end: true },
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/categories", label: "Categories", icon: Tags },
+  { to: "/admin/brands", label: "Brands", icon: Award },
   { to: "/admin/orders", label: "Orders", icon: ShoppingCart },
   { to: "/admin/users", label: "Users", icon: Users },
   { to: "/admin/coupons", label: "Coupons", icon: TicketPercent },

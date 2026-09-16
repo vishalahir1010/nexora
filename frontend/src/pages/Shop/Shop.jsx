@@ -89,16 +89,13 @@ const Shop = () => {
           <button onClick={() => setFiltersOpen(true)} className="lg:hidden btn-secondary !py-2 !px-4">
             <SlidersHorizontal size={15} /> Filters
           </button>
-          <div className="relative">
-            <select
-              value={sort}
-              onChange={(e) => updateParam("sort", e.target.value)}
-              className="appearance-none input-field !py-2 pr-9 text-sm cursor-pointer"
-            >
-              {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
-            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
+          <select
+  value={sort}
+  onChange={(e) => updateParam("sort", e.target.value)}
+  className="input-field !py-2 text-sm cursor-pointer"
+>
+  {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+</select>
         </div>
       </div>
 
